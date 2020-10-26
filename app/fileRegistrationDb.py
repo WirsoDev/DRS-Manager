@@ -1,19 +1,23 @@
 import os
 import xlrd
+from dotenv import load_dotenv
 
-#check if new file exists in folder
+load_dotenv()
+
+#check for new files in the folder | register files in database
 
 class Fileregister:
-    '''Register drs in database'''
+    '''Register DRS in database'''
     def __init__(self):
-        listfiles = os.listdir(r'\\Aqn124-pc\backup\DRS\DRS\DRS_EDITABLE')
+        filesPath = os.environ.get('DIREDITABLEFILES')
+        listfiles = os.listdir(filesPath)
         self.files = listfiles
 
 
     def filesInDataBase(self):
         '''list of files in db - OUT(DRS Nº_VERSION)'''
-        databasePath = r'\\Aqn124-pc\backup\DRS\DRS\DB\DRS_DB.xlsx'
-        databaseSheet = xlrd.open_workbook(databasePath).sheet_by_index(0)
+        dbPath = os.environ.get('DIRDATABASE')
+        databaseSheet = xlrd.open_workbook(dbPath).sheet_by_index(0)
 
         filesIndb = []
         for x in range(databaseSheet.nrows):
@@ -41,10 +45,6 @@ class Fileregister:
 
     def registFiles(self):
         pass
-
-
-
-print(Fileregister().newDrsFiles())
 
     
     
