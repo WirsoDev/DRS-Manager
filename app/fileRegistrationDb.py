@@ -30,8 +30,7 @@ class Fileregister:
 
 
     def newDrsFiles(self):
-        '''check for new files in folder - Returns a list of the new files to add in db'''
-
+        '''check for new files in folder - Returns a list of new files to add in db'''
         NewDrsInFolder = []
         for file in self.files:
             editfile = file.split('_')
