@@ -44,9 +44,9 @@ class Fileregister:
 
 
     def registFiles(self):
-        
-        for x in range(len(self.newDrsFiles())):
-            
+
+        for x in range(1): #(len(self.newDrsFiles())): #test!!!!! ----------------- remove de comments!
+
             filePath = f"{os.environ.get('DIREDITABLEFILES')}\{self.newDrsFiles()[x]}"
 
             #Extract values from files
@@ -57,7 +57,7 @@ class Fileregister:
             drsModelName = fileSheet.cell_value(6, 3)
             drsTipologia = fileSheet.cell_value(6, 6)
             drsTiposPedido = [
-                fileSheet.cell_value(8, 3), 
+                fileSheet.cell_value(8, 3),
                 fileSheet.cell_value(8, 5),
                 fileSheet.cell_value(8, 7)
                 ]
@@ -94,19 +94,16 @@ class Fileregister:
             dbFile = openpyxl.load_workbook(os.environ.get('DIRDATABASE'))
             #active sheet
             dbsheet = dbFile.active
-            
+
             # To write values
             #dbsheet['C3'] = 3
             #dbFile.save(os.environ.get('DIRDATABASE'))
 
             #check whats the prox enpty row
-            for r in dbsheet.iter_rows():
-                for cell in r:
-                    print(cell.value)
+            emptyRowNumber = ''
+            for cell in dbsheet['C']:
+                if cell.value is None:
+                    emptyRowNumber = cell.row
+                    break
             
-
-
-
-
-    
-    
+            print(emptyRowNumber)
