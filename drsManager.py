@@ -1,8 +1,9 @@
 # main file
 
 from app.fileRegistrationDb import Fileregister
+from app.margePdfFiles import MargePdfFiles
 
 
-manager = Fileregister()
+manager = MargePdfFiles()
 
-print(manager.registFiles())
+print(manager.Duplicatefilesfinder())

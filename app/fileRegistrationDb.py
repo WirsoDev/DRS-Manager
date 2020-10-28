@@ -138,8 +138,7 @@ class Fileregister:
                 # save file and close!
                 dbFile.save(os.environ.get('DIRDATABASE'))
                 dbFile.close()
-                print('New files add to DB!')
-
+            print('New files add to DB!')
         else:
             return 'No new files found!'
 
