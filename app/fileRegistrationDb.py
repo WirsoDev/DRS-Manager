@@ -2,6 +2,7 @@ import os
 import xlrd
 import openpyxl
 from dotenv import load_dotenv
+from datetime import date
 
 load_dotenv()
 
@@ -73,11 +74,11 @@ class Fileregister:
                     fileSheet.cell_value(27, 0)
                     ]
                 drsRevs = [
-                    [fileSheet.cell_value(36, 0), fileSheet.cell_value(36, 3)],
-                    [fileSheet.cell_value(37, 0), fileSheet.cell_value(37, 3)],
-                    [fileSheet.cell_value(38, 0), fileSheet.cell_value(38, 3)],
-                    [fileSheet.cell_value(39, 0), fileSheet.cell_value(39, 3)],
-                    [fileSheet.cell_value(40, 0), fileSheet.cell_value(40, 3)],
+                    fileSheet.cell_value(36, 3),
+                    fileSheet.cell_value(37, 3),
+                    fileSheet.cell_value(38, 3),
+                    fileSheet.cell_value(39, 3),
+                    fileSheet.cell_value(40, 3),
                 ]
                 drsDeadline = fileSheet.cell_value(11, 7)
                 drsForecast = fileSheet.cell_value(13, 7)
@@ -110,6 +111,31 @@ class Fileregister:
 
                 dbsheet[f'A{emptyRowNumber}'] = drsNumber
                 dbsheet[f'B{emptyRowNumber}'] = drsVersion
+                dbsheet[f'C{emptyRowNumber}'] = drsCodModel
+                dbsheet[f'D{emptyRowNumber}'] = drsModelName
+                dbsheet[f'E{emptyRowNumber}'] = drsTipologia
+                dbsheet[f'F{emptyRowNumber}'] = ', '.join(drsTiposPedido)
+                dbsheet[f'G{emptyRowNumber}'] = drsEmpresa
+                dbsheet[f'H{emptyRowNumber}'] = drsMia
+                dbsheet[f'I{emptyRowNumber}'] = drsCat
+                dbsheet[f'J{emptyRowNumber}'] = drsMercado
+                dbsheet[f'K{emptyRowNumber}'] = drsCliente
+                dbsheet[f'L{emptyRowNumber}'] = drsReqClient[0]
+                dbsheet[f'M{emptyRowNumber}'] = drsReqClient[1]
+                dbsheet[f'N{emptyRowNumber}'] = drsReqClient[2]
+                dbsheet[f'O{emptyRowNumber}'] = ', '.join(drsRevs)
+                dbsheet[f'P{emptyRowNumber}'] = drsDeadline
+                dbsheet[f'Q{emptyRowNumber}'] = drsForecast
+                dbsheet[f'R{emptyRowNumber}'] = drsDestino
+                dbsheet[f'S{emptyRowNumber}'] = drsAprov
+                dbsheet[f'T{emptyRowNumber}'] = drsAprovDate
+                dbsheet[f'U{emptyRowNumber}'] = drsEspuma
+                dbsheet[f'V{emptyRowNumber}'] = drsFuncRec
+                dbsheet[f'W{emptyRowNumber}'] = drsComents
+                dbsheet[f'X{emptyRowNumber}'] = drsFeedback
+                dbsheet[f'Y{emptyRowNumber}'] = date.today()
+
+                # save file and close!
                 dbFile.save(os.environ.get('DIRDATABASE'))
                 dbFile.close()
                 print('New files add to DB!')
