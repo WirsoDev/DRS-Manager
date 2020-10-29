@@ -140,6 +140,6 @@ class Fileregister:
                 dbFile.close()
             print('New files add to DB!')
         else:
-            return 'No new files found!'
+            return 'No new files found to add in DB!'
 
 
