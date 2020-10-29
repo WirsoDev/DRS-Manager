@@ -1,5 +1,3 @@
-# main file
-
 from app.fileRegistrationDb import Fileregister
 from app.margePdfFiles import MargePdfFiles
 import time
@@ -7,7 +5,7 @@ from datetime import date
 
 # main program 
 def main():
-    print('Program are running!!')
+    print(f'Program running at: {date.today()}!!')
     while True:
         try:
             manageDb = Fileregister()

@@ -97,11 +97,6 @@ class Fileregister:
                 #active sheet
                 dbsheet = dbFile.active
 
-                # To write values
-                #dbsheet['C3'] = 3
-                #dbFile.save(os.environ.get('DIRDATABASE'))
-
-                #check whats the prox enpty row
                 emptyRowNumber = ''
                 for cell in dbsheet['A']:
                     if cell.value is None:
