@@ -1,7 +1,8 @@
 import PyPDF2
 import os
 from dotenv import load_dotenv
-import PyPDF2 
+import PyPDF2
+from shutil import copyfile
 
 load_dotenv()
 
@@ -10,7 +11,11 @@ class MargePdfFiles:
 
     def __init__(self):
         self.path = os.environ.get('DIRPDFFILES')
-        self.files = os.listdir(self.path) # array of existing files
+        self.backup = os.environ.get('BACKPDF')
+        self.files = []
+        for pdf in os.listdir(self.path): 
+            if '.pdf' in pdf:
+                self.files.append(pdf)
 
 
     def Duplicatefilesfinder(self):
@@ -33,20 +38,36 @@ class MargePdfFiles:
             duplicatedDRS.sort()
             return duplicatedDRS
         else:
-            return 'Folder is empty!'
+            return False
 
     def MargeDuplicatedFiles(self):
         '''Marge the files in versions -> PDF FILE'''
-        print(self.Duplicatefilesfinder())
         if self.Duplicatefilesfinder():
+            # bucket all the same DRS files
+            # save duplicates to backup folder
             marquer = self.Duplicatefilesfinder()[0].split('_')[1].strip()
             bucketFiles = []
             for file in self.Duplicatefilesfinder():
                 fileNumber = ''.join(file.split('_')[1]).strip()
                 if fileNumber == marquer or len(bucketFiles) == 0:
-                    bucketFiles.append(file)
-            
-            print(bucketFiles)
+                    bucketFiles.insert(0,file)
+                    copyfile(f'{self.path}/{file}', f'{self.backup}/{file}')
 
+            # create a new pdf file
+            # marge all pdf to the new file
+            # Remove duplicates from folder
+            margedFile = PyPDF2.PdfFileMerger()
+            for x in range(len(bucketFiles)):
+                margedFile.append(PyPDF2.PdfFileReader(f'{self.path}/{bucketFiles[x]}', 'rb'))
+                os.remove(f'{self.path}/{bucketFiles[x]}')
+
+            # save new file -> name : DRS_NUMBER_NUMBER OF VERSION_.pdf
+            numberOfEd = f'{len(bucketFiles)}'
+            MargedDrsName = f'DRS_{marquer}_ED_{numberOfEd}'
+            margedFile.write(f'{self.path}/{MargedDrsName}.pdf')
+
+            print('New files marged!')
+        else:
+            return False
                 
 
