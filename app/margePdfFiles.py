@@ -1,22 +1,18 @@
-'''
-Check for files in folder
-if finds DRS with the same number, marge them in a single file
-
-Test sort in duplicates
-Try marge by DRS Number
-'''
-
 import PyPDF2
 import os
-import dotenv
+from dotenv import load_dotenv
+import PyPDF2 
+
+load_dotenv()
+
 
 class MargePdfFiles:
 
     def __init__(self):
-        self.filepath = os.environ.get('DIRPDFFILES')
-        self.files = os.listdir(self.filepath) # array of existing files
+        self.path = os.environ.get('DIRPDFFILES')
+        self.files = os.listdir(self.path) # array of existing files
 
-    
+
     def Duplicatefilesfinder(self):
         '''Return a list of duplicate files in folder -> ARRAY'''
         if self.files:
@@ -29,17 +25,28 @@ class MargePdfFiles:
             duplicatedFile = [x for n, x in enumerate(listoffiles) if x in listoffiles[:n]]
             duplicatedDRS = []
 
-            for file in self.files:
+            for file in self. files:
                 edfile = file.split('_')
                 edfile1 = ''.join(edfile[1].split())
                 if edfile1 in duplicatedFile:
                     duplicatedDRS.append(file) 
             duplicatedDRS.sort()
-            print(duplicatedDRS)
             return duplicatedDRS
         else:
             return 'Folder is empty!'
 
     def MargeDuplicatedFiles(self):
         '''Marge the files in versions -> PDF FILE'''
-        pass
+        print(self.Duplicatefilesfinder())
+        if self.Duplicatefilesfinder():
+            marquer = self.Duplicatefilesfinder()[0].split('_')[1].strip()
+            bucketFiles = []
+            for file in self.Duplicatefilesfinder():
+                fileNumber = ''.join(file.split('_')[1]).strip()
+                if fileNumber == marquer or len(bucketFiles) == 0:
+                    bucketFiles.append(file)
+            
+            print(bucketFiles)
+
+                
+
