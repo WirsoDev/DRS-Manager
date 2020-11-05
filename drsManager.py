@@ -5,7 +5,7 @@ from datetime import date
 
 # main program 
 def main():
-    print(f'Program running at: {date.today()}!!')
+    print(f'Program running: {date.today()}!')
     while True:
         # db manager
         try:
@@ -13,7 +13,7 @@ def main():
             manageDb.registFiles()
             managePdf = MargePdfFiles()
             managePdf.MargeDuplicatedFiles()
-            time.sleep(20)
+            time.sleep(10)
         except PermissionError:
             print('File open!')
             time.sleep(10)
