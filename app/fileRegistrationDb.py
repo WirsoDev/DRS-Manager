@@ -2,7 +2,7 @@ import os
 import xlrd
 import openpyxl
 from dotenv import load_dotenv
-from datetime import date
+from datetime import date, datetime
 
 load_dotenv()
 
@@ -133,7 +133,10 @@ class Fileregister:
                 # save file and close!
                 dbFile.save(os.environ.get('DIRDATABASE'))
                 dbFile.close()
-            print('New files add to DB!')
+
+            now = datetime.now()
+
+            print(f'New files add to DB! at: {now}')
         else:
             return 'No new files found to add in DB!'
 

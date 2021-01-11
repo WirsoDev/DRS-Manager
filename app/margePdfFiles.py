@@ -3,6 +3,7 @@ import os
 from dotenv import load_dotenv
 import PyPDF2
 from shutil import copyfile
+from datetime import datetime
 
 load_dotenv()
 
@@ -66,7 +67,8 @@ class MargePdfFiles:
             MargedDrsName = f'DRS_{marquer}_ED_{numberOfEd}'
             margedFile.write(f'{self.path}/{MargedDrsName}.pdf')
 
-            print('New files marged!')
+            now = datetime.now()
+            print(f'New files marged! At: {now}')
         else:
             return False
                 
