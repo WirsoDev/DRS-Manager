@@ -1,8 +1,8 @@
 from app.fileRegistrationDb import Fileregister
 
-x = Fileregister().registFiles()
+x = Fileregister().lastDrsCreated()
 
-print(x)
+
 
 
 

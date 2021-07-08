@@ -10,6 +10,7 @@ def main():
         # db manager
         try:
             manageDb = Fileregister()
+            manageDb.lastDrsCreated()
             manageDb.registFiles()
             managePdf = MargePdfFiles()
             managePdf.MargeDuplicatedFiles()

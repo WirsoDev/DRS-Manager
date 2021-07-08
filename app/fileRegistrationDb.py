@@ -17,6 +17,9 @@ class Fileregister:
 
 
     def filesInDataBase(self):
+
+        # Close file (open file - with )
+
         '''list of files in db - OUT(DRS Nº_VERSION)'''
         dbPath = os.environ.get('DIRDATABASE')
         databaseSheet = xlrd.open_workbook(dbPath).sheet_by_index(0)
@@ -29,6 +32,26 @@ class Fileregister:
                 NumberAndEd = f"{int(drsfileN)}_{int(drsfileE)}"
                 filesIndb.append(NumberAndEd)
         return filesIndb
+
+
+    def lastDrsCreated(self):
+        allDrs = self.filesInDataBase()
+        last = []
+        for files in allDrs:
+            drsNumber = files.split('_')[0]
+            if drsNumber not in last:
+                last.append(int(drsNumber))
+        
+        nextdrs = int(max(last)) + 1
+        root = os.environ.get('ROOT')
+        txtInDIr = ''
+        for x in os.listdir(root):
+            if '.txt' in x:
+                txtInDIr = x
+        if txtInDIr:
+            os.remove(f'{root}/{txtInDIr}')
+        j = open(f'{root}\ NEXT DRS_{nextdrs}.txt', 'w')
+        j.close()
 
 
     def newDrsFiles(self):
