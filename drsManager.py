@@ -12,8 +12,8 @@ def main():
             manageDb = Fileregister()
             manageDb.lastDrsCreated()
             manageDb.registFiles()
-            managePdf = MargePdfFiles()
-            managePdf.MargeDuplicatedFiles()
+            #managePdf = MargePdfFiles()
+            #managePdf.MargeDuplicatedFiles()
             time.sleep(10)
         except PermissionError:
             print('File open!')
