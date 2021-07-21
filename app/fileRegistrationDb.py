@@ -31,7 +31,8 @@ class Fileregister:
             if drsfileN != 'DRS Nº':
                 NumberAndEd = f"{int(drsfileN)}_{int(drsfileE)}"
                 filesIndb.append(NumberAndEd)
-        return filesIndb
+        reversed_list = filesIndb[::-1]
+        return reversed_list
 
 
     def lastDrsCreated(self):
@@ -57,13 +58,15 @@ class Fileregister:
     def newDrsFiles(self):
         '''check for new files in folder - Returns a list of new files to add in db'''
         NewDrsInFolder = []
-        for file in self.files:
+        reversed_files = self.files[::-1]
+        for file in reversed_files:
             editfile = file.split('_')
             editfileName = ''.join(editfile[1].split())
             editfileVersion = ''.join(editfile[3][1].split())
             numberAndEd = f'{editfileName}_{editfileVersion}'
             if numberAndEd not in self.filesInDataBase():
                 NewDrsInFolder.append(file)
+                break
         return NewDrsInFolder
 
 
@@ -112,6 +115,7 @@ class Fileregister:
                 drsFuncRec = fileSheet.cell_value(25, 5)
                 drsComents = fileSheet.cell_value(28, 5)
                 drsFeedback = fileSheet.cell_value(33, 5)
+                drsCliente = fileSheet.cell_value(19, 3)
 
                 #Write values in dataBase
 
@@ -152,6 +156,7 @@ class Fileregister:
                 dbsheet[f'W{emptyRowNumber}'] = drsComents
                 dbsheet[f'X{emptyRowNumber}'] = drsFeedback
                 dbsheet[f'Y{emptyRowNumber}'] = date.today()
+
 
                 # save file and close!
                 dbFile.save(os.environ.get('DIRDATABASE'))
