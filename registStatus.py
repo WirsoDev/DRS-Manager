@@ -2,6 +2,11 @@ import imaplib
 import email
 from email.header import decode_header
 from bs4 import BeautifulSoup as bs
+import xlrd
+import openpyxl
+import datetime
+import time
+
 
 
 def getEmails():
@@ -144,9 +149,91 @@ def parseData(data):
 
 
 
-
-
 drs = parseData(data)
-for _ in drs:
-    print(_)
+
+
+db_file = 'DRS_DB.xlsx'
+
+
+def getDrsStatus(path_db, drs_data):
+
+    #open db
+    db_file = xlrd.open_workbook(path_db).sheet_by_index(0)
+
+    #loop to drs_data
+    for _ in drs_data:
+        drs_number = _['drsnumber']     
+        requester = _['requester']
+        status = _['status']
+        
+        #check if drs in db and the status
+        for x in range(db_file.nrows):
+            drs_n = db_file.cell_value(x, 0)
+
+            if(type(drs_n) != str):
+                if int(drs_n) == int(drs_number):
+                    if status.upper() == 'FINALIZADO':
+                        #check if this status are empty
+
+                        isStatusEmpty = db_file.cell_value(x, 27)
+                        if len(isStatusEmpty) == 0:
+                            #add status to DB
+                            file_ = openpyxl.load_workbook(path_db)
+                            dbsheet = file_.active
+                            dbsheet[f'AB{x + 1}'] = requester
+                            today = time.strftime("%m/%d/%Y")
+                            dbsheet[f'AC{x + 1}'] = datetime.datetime.strptime(today, "%m/%d/%Y")
+                            file_.save(path_db)
+                            file_.close()
+                            print(f'DRS {drs_n} add to db with status: {status.upper()}')
+
+                    if status.upper() == 'APROVADO':
+                        #check if this status are empty
+
+                        isStatusEmpty = db_file.cell_value(x, 29)
+                        if len(isStatusEmpty) == 0:
+                            #add status to DB
+                            file_ = openpyxl.load_workbook(path_db)
+                            dbsheet = file_.active
+                            dbsheet[f'AD{x + 1}'] = requester
+                            today = time.strftime("%m/%d/%Y")
+                            dbsheet[f'AF{x + 1}'] = datetime.datetime.strptime(today, "%m/%d/%Y")
+                            file_.save(path_db)
+                            file_.close()
+                            print(f'DRS {drs_n} add to db with status: {status.upper()}')
+
+                    if status.upper() == 'RECUSADO':
+                        #check if this status are empty
+
+                        isStatusEmpty = db_file.cell_value(x, 29)
+                        isStatusEmpty_2 = db_file.cell_value(x, 30)
+                        if len(isStatusEmpty) == 0 and len(isStatusEmpty_2) == 0:
+                            #add status to DB
+                            file_ = openpyxl.load_workbook(path_db)
+                            dbsheet = file_.active
+                            dbsheet[f'AE{x + 1}'] = requester
+                            today = time.strftime("%m/%d/%Y")
+                            dbsheet[f'AF{x + 1}'] = datetime.datetime.strptime(today, "%m/%d/%Y")
+                            file_.save(path_db)
+                            file_.close()
+                            print(f'DRS {drs_n} add to db with status: {status.upper()}')
+                    
+                    if status.upper() == 'ANULADO':
+                        #check if this status are empty
+
+                        isStatusEmpty = db_file.cell_value(x, 32)
+                        if len(isStatusEmpty) == 0:
+                            #add status to DB
+                            file_ = openpyxl.load_workbook(path_db)
+                            dbsheet = file_.active
+                            dbsheet[f'AG{x + 1}'] = requester
+                            today = time.strftime("%m/%d/%Y")
+                            dbsheet[f'AH{x + 1}'] = datetime.datetime.strptime(today, "%m/%d/%Y")
+                            file_.save(path_db)
+                            file_.close()
+                            print(f'DRS {drs_n} add to db with status: {status.upper()}')
+        
+        
+
+getDrsStatus(db_file, drs_data=drs)
 
