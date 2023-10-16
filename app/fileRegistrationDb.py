@@ -21,7 +21,7 @@ class Fileregister:
         # Close file (open file - with )
 
         '''list of files in db - OUT(DRS Nº_VERSION)'''
-        dbPath = os.environ.get('DIRDATABASE')
+        dbPath = os.environ.get('DIRDATABASE') #development
         databaseSheet = xlrd.open_workbook(dbPath).sheet_by_index(0)
 
         filesIndb = []
@@ -59,7 +59,8 @@ class Fileregister:
         '''check for new files in folder - Returns a list of new files to add in db'''
         NewDrsInFolder = []
         reversed_files = self.files[::-1]
-        for file in reversed_files:
+        for file in reversed_files: # number over 1000 - dont use reversed_files
+            print(file)
             editfile = file.split('_')
             editfileName = ''.join(editfile[1].split())
             editfileVersion = ''.join(editfile[3][1].split())
@@ -71,10 +72,11 @@ class Fileregister:
 
 
     def registFiles(self):
-        if self.newDrsFiles():
-            print('Files to Register: ', len(self.newDrsFiles()))
-            print(self.newDrsFiles())
-            for drsfiles in self.newDrsFiles(): #test!!!!! ----------------- remove de comments!
+        new_drs_files = self.newDrsFiles()
+        if new_drs_files:
+            print('Files to Register: ', len(new_drs_files))
+            for drsfiles in new_drs_files: 
+                print('Register...: ', drsfiles)
                 filePath = f"{os.environ.get('DIREDITABLEFILES')}\{drsfiles}"
 
                 #Extract values from files
@@ -123,39 +125,43 @@ class Fileregister:
                 dbFile = openpyxl.load_workbook(os.environ.get('DIRDATABASE'))
                 #active sheet
                 dbsheet = dbFile.active
-
+                
                 emptyRowNumber = ''
                 for cell in dbsheet['A']:
                     if cell.value is None:
                         emptyRowNumber = cell.row
                         break
-                # add data to database
 
+                # add data to database
                 dbsheet[f'A{emptyRowNumber}'] = drsNumber
                 dbsheet[f'B{emptyRowNumber}'] = drsVersion
                 dbsheet[f'C{emptyRowNumber}'] = drsCodModel
                 dbsheet[f'D{emptyRowNumber}'] = drsModelName
                 dbsheet[f'E{emptyRowNumber}'] = drsTipologia
-                dbsheet[f'F{emptyRowNumber}'] = ', '.join(drsTiposPedido)
-                dbsheet[f'G{emptyRowNumber}'] = drsEmpresa
-                dbsheet[f'H{emptyRowNumber}'] = drsMia
-                dbsheet[f'I{emptyRowNumber}'] = drsCat
-                dbsheet[f'J{emptyRowNumber}'] = drsMercado
-                dbsheet[f'K{emptyRowNumber}'] = drsCliente
-                dbsheet[f'L{emptyRowNumber}'] = drsReqClient[0]
-                dbsheet[f'M{emptyRowNumber}'] = drsReqClient[1]
-                dbsheet[f'N{emptyRowNumber}'] = drsReqClient[2]
-                dbsheet[f'O{emptyRowNumber}'] = ', '.join(drsRevs)
-                dbsheet[f'P{emptyRowNumber}'] = drsDeadline
-                dbsheet[f'Q{emptyRowNumber}'] = drsForecast
-                dbsheet[f'R{emptyRowNumber}'] = drsDestino
-                dbsheet[f'S{emptyRowNumber}'] = drsAprov
-                dbsheet[f'T{emptyRowNumber}'] = drsAprovDate
-                dbsheet[f'U{emptyRowNumber}'] = drsEspuma
-                dbsheet[f'V{emptyRowNumber}'] = drsFuncRec
-                dbsheet[f'W{emptyRowNumber}'] = drsComents
-                dbsheet[f'X{emptyRowNumber}'] = drsFeedback
-                dbsheet[f'Y{emptyRowNumber}'] = date.today()
+                dbsheet[f'F{emptyRowNumber}'] = drsTiposPedido[0]
+                dbsheet[f'G{emptyRowNumber}'] = drsTiposPedido[1]
+                dbsheet[f'H{emptyRowNumber}'] = drsTiposPedido[2]
+
+
+                dbsheet[f'I{emptyRowNumber}'] = drsEmpresa
+                dbsheet[f'J{emptyRowNumber}'] = drsMia
+                dbsheet[f'K{emptyRowNumber}'] = drsCat
+                dbsheet[f'L{emptyRowNumber}'] = drsMercado
+                dbsheet[f'M{emptyRowNumber}'] = drsCliente
+                dbsheet[f'N{emptyRowNumber}'] = drsReqClient[0]
+                dbsheet[f'O{emptyRowNumber}'] = drsReqClient[1]
+                dbsheet[f'P{emptyRowNumber}'] = drsReqClient[2]
+                dbsheet[f'Q{emptyRowNumber}'] = ', '.join(drsRevs)
+                dbsheet[f'R{emptyRowNumber}'] = drsDeadline
+                dbsheet[f'S{emptyRowNumber}'] = drsForecast
+                dbsheet[f'T{emptyRowNumber}'] = drsDestino
+                dbsheet[f'U{emptyRowNumber}'] = drsAprov
+                dbsheet[f'V{emptyRowNumber}'] = drsAprovDate
+                dbsheet[f'W{emptyRowNumber}'] = drsEspuma
+                dbsheet[f'X{emptyRowNumber}'] = drsFuncRec
+                dbsheet[f'Y{emptyRowNumber}'] = drsComents
+                dbsheet[f'Z{emptyRowNumber}'] = drsFeedback
+                dbsheet[f'AA{emptyRowNumber}'] = date.today()
 
 
                 # save file and close!
