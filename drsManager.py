@@ -2,6 +2,7 @@ from app.fileRegistrationDb import Fileregister
 from app.margePdfFiles import MargePdfFiles
 import time
 from datetime import date
+from registStatus import registStatus
 
 # main program 
 def main():
@@ -12,6 +13,7 @@ def main():
             manageDb = Fileregister()
             manageDb.lastDrsCreated()
             manageDb.registFiles()
+            registStatus()
             #managePdf = MargePdfFiles()
             #managePdf.MargeDuplicatedFiles()
             time.sleep(10)

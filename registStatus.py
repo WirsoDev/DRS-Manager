@@ -6,6 +6,10 @@ import xlrd
 import openpyxl
 import datetime
 import time
+from dotenv import load_dotenv
+import os
+
+load_dotenv()
 
 
 
@@ -24,7 +28,7 @@ def getEmails():
     status, messages = imap.select("INBOX")
 
     # number of top emails to fetch
-    N = 9
+    N = 4
     # total number of emails
     messages = int(messages[0])
 
@@ -59,7 +63,7 @@ def getEmails():
                         content_disposition = str(part.get("Content-Disposition"))
                         try:
                             # get the email body
-                            body = part.get_payload(decode=True).decode()
+                            body = part.get_payload(decode=True)
                         except:
                             pass
                         if content_type == "text/plain" and "attachment" not in content_disposition:
@@ -142,7 +146,7 @@ def parseData(data):
                             'requester':requester,
                             'status':status_
                         }
-                        data_parsed.append(data)
+                        data_parsed.append(data)         
         return data_parsed
     print('Error getting data')
     return
@@ -151,11 +155,10 @@ def parseData(data):
 
 drs = parseData(data)
 
-
-db_file = 'DRS_DB.xlsx'
-
+db_file = os.environ.get('DIRDATABASE')
 
 def getDrsStatus(path_db, drs_data):
+    print('Run Drs Status - fine')
 
     #open db
     db_file = xlrd.open_workbook(path_db).sheet_by_index(0)
@@ -169,12 +172,10 @@ def getDrsStatus(path_db, drs_data):
         #check if drs in db and the status
         for x in range(db_file.nrows):
             drs_n = db_file.cell_value(x, 0)
-
             if(type(drs_n) != str):
                 if int(drs_n) == int(drs_number):
-                    if status.upper() == 'FINALIZADO':
+                    if status.upper() == 'FINALIZADA':
                         #check if this status are empty
-
                         isStatusEmpty = db_file.cell_value(x, 27)
                         if len(isStatusEmpty) == 0:
                             #add status to DB
@@ -187,7 +188,8 @@ def getDrsStatus(path_db, drs_data):
                             file_.close()
                             print(f'DRS {drs_n} add to db with status: {status.upper()}')
 
-                    if status.upper() == 'APROVADO':
+
+                    if status.upper() == 'APROVADA':
                         #check if this status are empty
 
                         isStatusEmpty = db_file.cell_value(x, 29)
@@ -202,7 +204,7 @@ def getDrsStatus(path_db, drs_data):
                             file_.close()
                             print(f'DRS {drs_n} add to db with status: {status.upper()}')
 
-                    if status.upper() == 'RECUSADO':
+                    if status.upper() == 'RECUSADA':
                         #check if this status are empty
 
                         isStatusEmpty = db_file.cell_value(x, 29)
@@ -218,7 +220,7 @@ def getDrsStatus(path_db, drs_data):
                             file_.close()
                             print(f'DRS {drs_n} add to db with status: {status.upper()}')
                     
-                    if status.upper() == 'ANULADO':
+                    if status.upper() == 'ANULADA':
                         #check if this status are empty
 
                         isStatusEmpty = db_file.cell_value(x, 32)
@@ -232,8 +234,8 @@ def getDrsStatus(path_db, drs_data):
                             file_.save(path_db)
                             file_.close()
                             print(f'DRS {drs_n} add to db with status: {status.upper()}')
-        
-        
 
-getDrsStatus(db_file, drs_data=drs)
+            
 
+def registStatus():
+    getDrsStatus(db_file, drs_data=drs)

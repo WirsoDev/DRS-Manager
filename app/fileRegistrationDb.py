@@ -60,7 +60,6 @@ class Fileregister:
         NewDrsInFolder = []
         reversed_files = self.files[::-1]
         for file in reversed_files: # number over 1000 - dont use reversed_files
-            print(file)
             editfile = file.split('_')
             editfileName = ''.join(editfile[1].split())
             editfileVersion = ''.join(editfile[3][1].split())
