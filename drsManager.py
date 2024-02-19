@@ -10,12 +10,11 @@ def main():
     while True:
         # db manager
         try:
+            registStatus()
             manageDb = Fileregister()
             manageDb.lastDrsCreated()
             manageDb.registFiles()
-            registStatus()
-            #managePdf = MargePdfFiles()
-            #managePdf.MargeDuplicatedFiles()
+
             time.sleep(10)
         except PermissionError:
             print('File open!')

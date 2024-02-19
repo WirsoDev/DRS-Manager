@@ -1,9 +1,5 @@
 from app.fileRegistrationDb import Fileregister
 
-app = Fileregister()
+x = Fileregister()
 
-print(app.registFiles())
-
-
-
-
+print(x.newDrsFiles())

@@ -1,5 +1,3 @@
-import imaplib 
-import email
 from email.header import decode_header
 from bs4 import BeautifulSoup as bs
 import xlrd
@@ -8,158 +6,130 @@ import datetime
 import time
 from dotenv import load_dotenv
 import os
+from imapclient import IMAPClient
+from mailparser import parse_from_bytes
+import re
 
 load_dotenv()
 
 
+def get_all_drs():
 
-def getEmails():
-    '''return array with subject / Body / requester_user'''
-
-    user = 'aqacademy@aquinos.pt'
-    pass_ = 'P@ssw0rd01'
-    imap_server = 'mail.aquinos.org'
-
-    # create an IMAP4 class with SSL 
-    imap = imaplib.IMAP4_SSL(imap_server)
-    # authenticate
-    imap.login(user, pass_)
-
-    status, messages = imap.select("INBOX")
-
-    # number of top emails to fetch
-    N = 4
-    # total number of emails
-    messages = int(messages[0])
-
-    data = []
-
-    for i in range(messages, messages-N, -1):
-        # fetch the email message by ID
-        res, msg = imap.fetch(str(i), "(RFC822)")
-
-        for response in msg:
-            if isinstance(response, tuple):
-                # parse a bytes email into a message object
-                msg = email.message_from_bytes(response[1])
-                # decode the email subject
-                subject, encoding = decode_header(msg["Subject"])[0]
-                if isinstance(subject, bytes):
-                    # if it's a bytes, decode to str
-                    subject = subject.decode(encoding)
-                # decode email sender
-                From, encoding = decode_header(msg.get("From"))[0]
-                if isinstance(From, bytes):
-                    From = From.decode(encoding)
-                subject_ = subject
-                from_ = From
-
-                # if the email message is multipart
-                if msg.is_multipart():
-                    # iterate over email parts
-                    for part in msg.walk():
-                        # extract content type of email
-                        content_type = part.get_content_type()
-                        content_disposition = str(part.get("Content-Disposition"))
-                        try:
-                            # get the email body
-                            body = part.get_payload(decode=True)
-                        except:
-                            pass
-                        if content_type == "text/plain" and "attachment" not in content_disposition:
-                            # print text/plain emails and skip attachments
-                            body_ = getBodyMsg(body)
-                        elif "attachment" in content_disposition:
-                            # download attachment
-                            filename = part.get_filename()
-                            body_ = getBodyMsg(body)
-                            if filename:
-                                pass
-                else:
-                    # extract content type of email
-                    content_type = msg.get_content_type()
-                    # get the email body
-                    body = msg.get_payload(decode=True)
-                    if content_type == "text/plain":
-                        # print only text email parts
-                        body_ = body
-                if content_type == "text/html":
-                    body_ = getBodyMsg(body)
-
-                # from / Subject / Body
-                to_apend = [from_, subject_, body_]
-                data.append(to_apend)
-
-    # close the connection and logout
-    imap.close()
-    imap.logout()
-    return data
+    # Configurações do servidor IMAP do Outlook
+    outlook_server = "mail.aquinos.org"
+    outlook_username = "aqacademy@aquinos.pt"
+    outlook_password = "P@ssw0rd01"
 
 
-#helpers
+    # Conectando ao servidor IMAP do Outlook
+    with IMAPClient(outlook_server) as client:
+        client.login(outlook_username, outlook_password)
 
-def getBodyMsg(body):
-    html_file = body
-    parsed_html = bs(html_file, features="html.parser")
-    # get bodymsg -> p tag
-    try:
-        p_tag = parsed_html.findAll('p')
-        all_ps = []
-        for i in p_tag:
-            if 'STATUS' in i.text.upper():
-                all_ps.append(i.text)
+
+        # Selecionando a caixa de entrada
+        client.select_folder("INBOX")
+
+
+        # Buscando os IDs dos emails na caixa de entrada
+        # Você pode ajustar os critérios de busca conforme necessário
+        messages = client.search("ALL")
+
+        # Iterando sobre os IDs dos emails
+        # get all drs non duplicated 
+        all_drs = []
+        controler = []
+
+        for msg_id in messages:
+        # Obtendo o corpo do email
+            raw_message = client.fetch([msg_id], ["RFC822"])[msg_id][b"RFC822"]
+            parsed_message = parse_from_bytes(raw_message)
+
+
+            # Extraindo informações do email
+            sender = parsed_message.from_
+            date_sent = parsed_message.date
+
+
+            # Tentando extrair diferentes partes do corpo do e-mail
+            body_parts = []
+
+
+            # Texto simples
+            if parsed_message.text_plain:
+                body_parts.append(parsed_message.text_plain)
+
+
+            # HTML
+            if parsed_message.text_html:
+                body_parts.append(parsed_message.text_html)
+
+
+            # Outras partes
+            if parsed_message.text_other:
+                body_parts.append(parsed_message.text_other)
+
+
+            # Exibindo informações do email
+            #print(f"De: {sender}")
+            #print(f"Data de Envio: {date_sent}")
+
+
+            # Exibindo todas as partes do corpo do e-mail
+            #re pattern STATUS: DRS [1-9]\d{3} (?:APROVADA|FINALIZADA|ANULADA|RECUSADA)
+            pattern = re.compile(r'STATUS: DRS [1-9]\d{3} (?:APROVADA|FINALIZADA|ANULADA)(?: \d{2}/\d{2}/\d{4})?')
+
+
+            if body_parts:
+                #print("Corpo(s) do Email:")
+                
+                for part in body_parts:
+                    for p in part:
+                        matches = pattern.findall(p.upper())
+                        for m in matches:
+                            #print(m)
+                            # object
+                            if m not in controler:
+                                
+                                #requester
+                                requester = sender[0][0]
+                                #date ( check if date has given )
+                                if len(m.split(' ')) > 4:
+                                    date = m.split(' ')[-1]
+                                else:
+                                    date = date_sent.strftime('%d/%m/%Y')
+
+                                #drs number
+                                drs_number = m.split(' ')[2]
+
+                                #status
+                                status = m.split(' ')[3]
+                                
+                                to_add = {
+                                    'requester':requester,
+                                    'date':date,
+                                    'drsnumber':drs_number,
+                                    'status':status
+                                }
+                                all_drs.append(to_add)
+                            controler.append(m)
+
             else:
-                pass
-        return all_ps
+                print("Nenhuma parte do corpo do e-mail encontrada.")
+    return all_drs
 
-    except AttributeError:
-        return body
+
+
+
+
+def getDrsStatus():
+
+    #Get drs data
+    drs_data = get_all_drs()
+
+    #drs = parseData(data)
+
+    path_db = os.environ.get('DIRDATABASE')
     
-
-data =  getEmails()
-
-
-def parseData(data):
-    '''Return array of dict: {
-        {
-           drsnumber:drsnumber;
-           requester:requester;
-           status:status
-           date:date
-        }
-    }'''
-    if(len(data) > 1):
-        status_types = ['aprovada', 'recusada', 'finalizada', 'anulada']
-        data_parsed = []
-        for x in data:
-            #get requester
-            requester = x[0].split('<')[0]
-            #get drs and status
-            for i in x[2]:
-                drsnumber = [int(j) for j in i.split() if j.isdigit()][0]
-                #get drs status
-                for status in status_types:
-                    if status.upper() in i.upper():
-                        status_ = status
-                        data = {
-                            'drsnumber':drsnumber,
-                            'requester':requester,
-                            'status':status_
-                        }
-                        data_parsed.append(data)         
-        return data_parsed
-    print('Error getting data')
-    return
-
-
-
-drs = parseData(data)
-
-db_file = os.environ.get('DIRDATABASE')
-
-def getDrsStatus(path_db, drs_data):
-    print('Run Drs Status - fine')
-
     #open db
     db_file = xlrd.open_workbook(path_db).sheet_by_index(0)
 
@@ -168,6 +138,7 @@ def getDrsStatus(path_db, drs_data):
         drs_number = _['drsnumber']     
         requester = _['requester']
         status = _['status']
+        date = _['date']
         
         #check if drs in db and the status
         for x in range(db_file.nrows):
@@ -182,8 +153,7 @@ def getDrsStatus(path_db, drs_data):
                             file_ = openpyxl.load_workbook(path_db)
                             dbsheet = file_.active
                             dbsheet[f'AB{x + 1}'] = requester
-                            today = time.strftime("%m/%d/%Y")
-                            dbsheet[f'AC{x + 1}'] = datetime.datetime.strptime(today, "%m/%d/%Y")
+                            dbsheet[f'AC{x + 1}'] = date
                             file_.save(path_db)
                             file_.close()
                             print(f'DRS {drs_n} add to db with status: {status.upper()}')
@@ -198,8 +168,7 @@ def getDrsStatus(path_db, drs_data):
                             file_ = openpyxl.load_workbook(path_db)
                             dbsheet = file_.active
                             dbsheet[f'AD{x + 1}'] = requester
-                            today = time.strftime("%m/%d/%Y")
-                            dbsheet[f'AF{x + 1}'] = datetime.datetime.strptime(today, "%m/%d/%Y")
+                            dbsheet[f'AF{x + 1}'] = date
                             file_.save(path_db)
                             file_.close()
                             print(f'DRS {drs_n} add to db with status: {status.upper()}')
@@ -214,8 +183,7 @@ def getDrsStatus(path_db, drs_data):
                             file_ = openpyxl.load_workbook(path_db)
                             dbsheet = file_.active
                             dbsheet[f'AE{x + 1}'] = requester
-                            today = time.strftime("%m/%d/%Y")
-                            dbsheet[f'AF{x + 1}'] = datetime.datetime.strptime(today, "%m/%d/%Y")
+                            dbsheet[f'AF{x + 1}'] = date
                             file_.save(path_db)
                             file_.close()
                             print(f'DRS {drs_n} add to db with status: {status.upper()}')
@@ -229,8 +197,7 @@ def getDrsStatus(path_db, drs_data):
                             file_ = openpyxl.load_workbook(path_db)
                             dbsheet = file_.active
                             dbsheet[f'AG{x + 1}'] = requester
-                            today = time.strftime("%m/%d/%Y")
-                            dbsheet[f'AH{x + 1}'] = datetime.datetime.strptime(today, "%m/%d/%Y")
+                            dbsheet[f'AH{x + 1}'] = date
                             file_.save(path_db)
                             file_.close()
                             print(f'DRS {drs_n} add to db with status: {status.upper()}')
@@ -238,4 +205,5 @@ def getDrsStatus(path_db, drs_data):
             
 
 def registStatus():
-    getDrsStatus(db_file, drs_data=drs)
+    getDrsStatus()
+
