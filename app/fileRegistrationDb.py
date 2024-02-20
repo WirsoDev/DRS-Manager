@@ -36,6 +36,7 @@ class Fileregister:
 
 
     def lastDrsCreated(self):
+        print(' -> Run lastDRS...')
         allDrs = self.filesInDataBase()
         last = []
         for files in allDrs:
@@ -51,7 +52,7 @@ class Fileregister:
                 txtInDIr = x
         if txtInDIr:
             os.remove(f'{root}/{txtInDIr}')
-        j = open(f'{root}\ NEXT DRS_{nextdrs}.txt', 'w')
+        j = open(f'{root}NEXT DRS_{nextdrs}.txt', 'w')
         j.close()
 
 
@@ -71,12 +72,13 @@ class Fileregister:
 
 
     def registFiles(self):
+        print(' -> Run regist DRS...')
         new_drs_files = self.newDrsFiles()
         if new_drs_files:
             print('Files to Register: ', len(new_drs_files))
             for drsfiles in new_drs_files: 
                 print('Register...: ', drsfiles)
-                filePath = f"{os.environ.get('DIREDITABLEFILES')}\{drsfiles}"
+                filePath = f"{os.environ.get('DIREDITABLEFILES')}{drsfiles}"
 
                 #Extract values from files
                 fileSheet = xlrd.open_workbook(filePath).sheet_by_index(0)

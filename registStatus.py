@@ -24,6 +24,7 @@ def get_all_drs():
     # Conectando ao servidor IMAP do Outlook
     with IMAPClient(outlook_server) as client:
         client.login(outlook_username, outlook_password)
+        print('Connected')
 
 
         # Selecionando a caixa de entrada
@@ -34,12 +35,17 @@ def get_all_drs():
         # Você pode ajustar os critérios de busca conforme necessário
         messages = client.search("ALL")
 
+        #reverse all mesages
+        messages.sort(reverse=True)
         # Iterando sobre os IDs dos emails
         # get all drs non duplicated 
         all_drs = []
         controler = []
 
+        count = 0
         for msg_id in messages:
+            if count == 10:
+                break
         # Obtendo o corpo do email
             raw_message = client.fetch([msg_id], ["RFC822"])[msg_id][b"RFC822"]
             parsed_message = parse_from_bytes(raw_message)
@@ -112,7 +118,8 @@ def get_all_drs():
                                 }
                                 all_drs.append(to_add)
                             controler.append(m)
-
+            
+                count += 1
             else:
                 print("Nenhuma parte do corpo do e-mail encontrada.")
     return all_drs
@@ -122,6 +129,7 @@ def get_all_drs():
 
 
 def getDrsStatus():
+    print(' -> Run DRS Status...')
 
     #Get drs data
     drs_data = get_all_drs()
