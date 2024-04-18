@@ -36,7 +36,7 @@ class Fileregister:
 
 
     def lastDrsCreated(self):
-        print(' -> Run lastDRS...')
+        print('     -> Run lastDRS...')
         allDrs = self.filesInDataBase()
         last = []
         for files in allDrs:
@@ -72,7 +72,7 @@ class Fileregister:
 
 
     def registFiles(self):
-        print(' -> Run regist DRS...')
+        print('     -> Run regist DRS...')
         new_drs_files = self.newDrsFiles()
         if new_drs_files:
             print('Files to Register: ', len(new_drs_files))

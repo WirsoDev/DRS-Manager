@@ -8,12 +8,14 @@ from dotenv import load_dotenv
 load_dotenv()
 
 class REPORTS:
-    def __init__(self):
+    def __init__(self, global_=False, filter_year=False):
         #Get all data from DRS DB
 
         db_file = os.environ.get('DIRDATABASE')
         file = load_workbook(filename=db_file)
         self.sheet = file['Folha1']
+        self.global_ = global_
+        self.filter_year = filter_year
 
         max = self.sheet.max_row
 
@@ -43,28 +45,55 @@ class REPORTS:
             
             drs_name = f"{self.sheet[f'A{x}'].value}_{str(self.sheet[f'B{x}'].value)}"
 
+            #controlor for filter yeear
+            if self.filter_year == False:
+                self.filter_year = date.year
+
             #controller if is global data or pass month
-            if recived_month == str(past_month):
-                if recived_year == str(self.year):
-                
+            if self.global_:
+                if recived_year in self.filter_year:
                     new_dic = {drs_name:{
-                            'drs_n': self.sheet[f'A{x}'].value,
-                            'codigo_modelo': self.sheet[f'C{x}'].value,
-                            'tipo_pedido_1':self.sheet[f'F{x}'].value,
-                            'tipo_pedido_2':self.sheet[f'G{x}'].value,
-                            'tipo_pedido_3':self.sheet[f'H{x}'].value,
-                            'mercado':self.sheet[f'L{x}'].value,
-                            'cliente':self.sheet[f'M{x}'].value,
-                            'Uni_prod':self.sheet[f'S{x}'].value,
-                            'Resp_pedido':self.sheet[f'U{x}'].value,
-                            'dep_requerente':self.sheet[f'V{x}'].value,
-                            'finalizado_por':self.sheet[f'AB{x}'].value,
-                            'aprovado_por':self.sheet[f'AD{x}'].value,
-                            'recusado_por':self.sheet[f'AE{x}'].value,
-                            'anulado_por':self.sheet[f'AE{x}'].value
-                            
-                            }}
+                                'drs_n': self.sheet[f'A{x}'].value,
+                                'codigo_modelo': self.sheet[f'C{x}'].value,
+                                'tipo_pedido_1':self.sheet[f'F{x}'].value,
+                                'tipo_pedido_2':self.sheet[f'G{x}'].value,
+                                'tipo_pedido_3':self.sheet[f'H{x}'].value,
+                                'mercado':self.sheet[f'L{x}'].value,
+                                'cliente':self.sheet[f'M{x}'].value,
+                                'Uni_prod':self.sheet[f'S{x}'].value,
+                                'Resp_pedido':self.sheet[f'U{x}'].value,
+                                'dep_requerente':self.sheet[f'V{x}'].value,
+                                'finalizado_por':self.sheet[f'AB{x}'].value,
+                                'aprovado_por':self.sheet[f'AD{x}'].value,
+                                'recusado_por':self.sheet[f'AE{x}'].value,
+                                'anulado_por':self.sheet[f'AE{x}'].value,
+                                'data_registo':self.sheet[f'AA{x}'].value,
+                                'finalizado_em':self.sheet[f'AC{x}'].value
+                                }}
                     self.current_mounth_drs.update(new_dic)
+            else:
+                if recived_month == str(past_month):
+                    if recived_year == str(self.year):
+                    
+                        new_dic = {drs_name:{
+                                'drs_n': self.sheet[f'A{x}'].value,
+                                'codigo_modelo': self.sheet[f'C{x}'].value,
+                                'tipo_pedido_1':self.sheet[f'F{x}'].value,
+                                'tipo_pedido_2':self.sheet[f'G{x}'].value,
+                                'tipo_pedido_3':self.sheet[f'H{x}'].value,
+                                'mercado':self.sheet[f'L{x}'].value,
+                                'cliente':self.sheet[f'M{x}'].value,
+                                'Uni_prod':self.sheet[f'S{x}'].value,
+                                'Resp_pedido':self.sheet[f'U{x}'].value,
+                                'dep_requerente':self.sheet[f'V{x}'].value,
+                                'finalizado_por':self.sheet[f'AB{x}'].value,
+                                'aprovado_por':self.sheet[f'AD{x}'].value,
+                                'recusado_por':self.sheet[f'AE{x}'].value,
+                                'anulado_por':self.sheet[f'AE{x}'].value,
+                                'data_registo':str(self.sheet[f'AA{x}'].value),
+                                'finalizado_em':str(self.sheet[f'AC{x}'].value)
+                                }}
+                        self.current_mounth_drs.update(new_dic)
 
             x += 1
 
@@ -112,6 +141,7 @@ class REPORTS:
             if self.current_mounth_drs[x]['aprovado_por'] != None:
                 drs_bucket.append(self.current_mounth_drs[x])
         return drs_bucket
+    
 
 
     def GetFinalized(self):

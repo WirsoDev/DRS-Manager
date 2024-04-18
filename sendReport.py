@@ -6,7 +6,6 @@ import requests
 def sendData():
     reports = REPORTS()
     data = reports.parseAllData()
-    #print(data)
 
     url = 'http://localhost:5000/drsreport'
     resp = requests.post(url, json=data)

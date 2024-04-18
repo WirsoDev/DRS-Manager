@@ -24,9 +24,6 @@ def get_all_drs():
     # Conectando ao servidor IMAP do Outlook
     with IMAPClient(outlook_server) as client:
         client.login(outlook_username, outlook_password)
-        print('Connected')
-
-
         # Selecionando a caixa de entrada
         client.select_folder("INBOX")
 
@@ -129,7 +126,7 @@ def get_all_drs():
 
 
 def getDrsStatus():
-    print(' -> Run DRS Status...')
+    print('     -> Run DRS Status...')
 
     #Get drs data
     drs_data = get_all_drs()

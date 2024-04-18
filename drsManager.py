@@ -6,13 +6,13 @@ from registStatus import registStatus
 
 # main program 
 def main():
-    st = time.time()
     cicle = 1
     print(f'++++++++++++++++++++++++++++++++')
     print(f'Program running: {date.today()}!')
     print(f'++++++++++++++++++++++++++++++++')
     while True:
-        print(f'     - RUNING CICLE: {cicle}')
+        st = time.time()
+        print(f' -> RUNING CICLE: {cicle}')
         # db manager
         try:
             manageDb = Fileregister()
@@ -21,7 +21,7 @@ def main():
             registStatus()
             time.sleep(10)
         except PermissionError:
-            print('File open!')
+            print('ERROR: File open!')
             time.sleep(10)
             pass
         except KeyboardInterrupt:
@@ -31,7 +31,7 @@ def main():
         except:
             print(f'ERROR! at: {date.today()}')
         ft = time.time()
-        print(f'     - CLOSE CICLE: {cicle} : Running time: {ft - st}')
+        print(f' -> CLOSE CICLE: {cicle} : Running time: {ft - st} s')
         cicle += 1
 
 
