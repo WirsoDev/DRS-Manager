@@ -1,5 +1,6 @@
 from app.fileRegistrationDb import Fileregister
 from app.margePdfFiles import MargePdfFiles
+from app.backups import BACK_UP
 import time
 from datetime import date
 from registStatus import registStatus
@@ -19,6 +20,11 @@ def main():
             manageDb.lastDrsCreated()
             manageDb.registFiles()
             registStatus()
+
+            #manage backups
+            bk_manager = BACK_UP()
+            bk_manager.mk_backup()
+
             time.sleep(10)
         except PermissionError:
             print('ERROR: File open!')
