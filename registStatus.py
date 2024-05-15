@@ -9,6 +9,7 @@ import os
 from imapclient import IMAPClient
 from mailparser import parse_from_bytes
 import re
+from status import status_
 
 load_dotenv()
 
@@ -41,7 +42,7 @@ def get_all_drs():
 
         count = 0
         for msg_id in messages:
-            if count == 10:
+            if count == 15:
                 break
         # Obtendo o corpo do email
             raw_message = client.fetch([msg_id], ["RFC822"])[msg_id][b"RFC822"]

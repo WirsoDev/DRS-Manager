@@ -1,7 +1,8 @@
 from app.backups import BACK_UP
+from registStatus import getDrsStatus
 
 
 
 if __name__ == '__main__':
-    data = BACK_UP()
-    cenas = data.mk_backup()
+    data = getDrsStatus()
+    print(data)

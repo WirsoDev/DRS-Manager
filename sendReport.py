@@ -4,7 +4,7 @@ import requests
 
 
 def sendData():
-    reports = REPORTS()
+    reports = REPORTS(global_=False)
     data = reports.parseAllData()
 
     url = 'http://localhost:5000/drsreport'

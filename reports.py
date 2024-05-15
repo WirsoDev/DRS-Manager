@@ -8,14 +8,16 @@ from dotenv import load_dotenv
 load_dotenv()
 
 class REPORTS:
-    def __init__(self, global_=False, filter_year=False):
+    def __init__(self, global_=False):
         #Get all data from DRS DB
+
+        date = datetime.datetime.now()
 
         db_file = os.environ.get('DIRDATABASE')
         file = load_workbook(filename=db_file)
         self.sheet = file['Folha1']
         self.global_ = global_
-        self.filter_year = filter_year
+        self.filter_year = date.year
 
         max = self.sheet.max_row
 
@@ -34,7 +36,7 @@ class REPORTS:
             if recived_month[0] == '0':
                 recived_month = recived_month.replace('0', '')
 
-            date = datetime.datetime.now()
+            
             if date.month == 1:
                 past_month = 12
                 self.year = date.year - 1
@@ -45,13 +47,10 @@ class REPORTS:
             
             drs_name = f"{self.sheet[f'A{x}'].value}_{str(self.sheet[f'B{x}'].value)}"
 
-            #controlor for filter yeear
-            if self.filter_year == False:
-                self.filter_year = date.year
 
             #controller if is global data or pass month
             if self.global_:
-                if recived_year in self.filter_year:
+                if int(recived_year) == int(self.filter_year):
                     new_dic = {drs_name:{
                                 'drs_n': self.sheet[f'A{x}'].value,
                                 'codigo_modelo': self.sheet[f'C{x}'].value,
@@ -67,8 +66,8 @@ class REPORTS:
                                 'aprovado_por':self.sheet[f'AD{x}'].value,
                                 'recusado_por':self.sheet[f'AE{x}'].value,
                                 'anulado_por':self.sheet[f'AE{x}'].value,
-                                'data_registo':self.sheet[f'AA{x}'].value,
-                                'finalizado_em':self.sheet[f'AC{x}'].value
+                                'data_registo':str(self.sheet[f'AA{x}'].value),
+                                'finalizado_em':str(self.sheet[f'AC{x}'].value)
                                 }}
                     self.current_mounth_drs.update(new_dic)
             else:
@@ -250,7 +249,7 @@ class REPORTS:
         tipos = []
         tipos_dic = {}
         for key, values in data.items():
-            tipo = values['Uni_prod']
+            tipo = str(values['Uni_prod'])
             if tipo:
                 tipos.append(tipo.upper().strip())
             
@@ -278,7 +277,7 @@ class REPORTS:
         tipos = []
         tipos_dic = {}
         for key, values in data.items():
-            tipo = values['Resp_pedido']
+            tipo = str(values['Resp_pedido'])
             if tipo:
                 tipos.append(tipo.upper().strip())
             
@@ -310,9 +309,13 @@ class REPORTS:
         canceled = self.getDrsCanceled()
 
         date = datetime.datetime.now()
+
         past_month = date.month - 1
-        if(past_month == 0):
+        if past_month == 0:
             past_month = 12
+
+        if self.global_ == True:
+            past_month = 13
         #year = date.year
 
         data = {
