@@ -4,6 +4,7 @@ import datetime
 import xlrd
 import os
 from dotenv import load_dotenv
+import re
 
 load_dotenv()
 
@@ -67,7 +68,8 @@ class REPORTS:
                                 'recusado_por':self.sheet[f'AE{x}'].value,
                                 'anulado_por':self.sheet[f'AE{x}'].value,
                                 'data_registo':str(self.sheet[f'AA{x}'].value),
-                                'finalizado_em':str(self.sheet[f'AC{x}'].value)
+                                'finalizado_em':str(self.sheet[f'AC{x}'].value),
+                                'fabric':self.sheet[f'Q{x}'].value
                                 }}
                     self.current_mounth_drs.update(new_dic)
             else:
@@ -90,7 +92,8 @@ class REPORTS:
                                 'recusado_por':self.sheet[f'AE{x}'].value,
                                 'anulado_por':self.sheet[f'AE{x}'].value,
                                 'data_registo':str(self.sheet[f'AA{x}'].value),
-                                'finalizado_em':str(self.sheet[f'AC{x}'].value)
+                                'finalizado_em':str(self.sheet[f'AC{x}'].value),
+                                'fabric':self.sheet[f'Q{x}'].value
                                 }}
                         self.current_mounth_drs.update(new_dic)
 
@@ -267,6 +270,37 @@ class REPORTS:
         return dic_sorted
     
 
+    def getFabrics(self):
+
+        ''' Get all markets 
+            return: DIC {tipo:qnt} '''
+
+        data = self.current_mounth_drs
+        pattern = r'\b[A-Za-z]\d{4}\b'
+
+        fabrics = []
+        tipos_dic = {}
+
+        for key, values in data.items():
+            fabric = values['fabric'].strip().split()
+            for x in fabric:
+                if re.search(pattern, x):
+                    fabrics.append(x.upper().replace(',',''))
+
+        for tip in fabrics:
+            y = {
+                tip:0
+            }
+            tipos_dic.update(y)
+        
+        for x in fabrics:
+            tipos_dic[x] += 1
+
+
+        dic_sorted = sorted(tipos_dic.items(), key=lambda x: x[1], reverse=True)
+        return dic_sorted
+    
+
     def getRequester(self):
 
         ''' Get all markets 
@@ -307,6 +341,7 @@ class REPORTS:
         productionUnit = self.getRequestUnit()
         requester = self.getRequester()
         canceled = self.getDrsCanceled()
+        fabrics = self.getFabrics()
 
         date = datetime.datetime.now()
 
@@ -331,7 +366,8 @@ class REPORTS:
             'requester':requester,
             'canceled':canceled,
             'past_month':past_month,
-            'year':self.year
+            'year':self.year,
+            'fabrics':fabrics
 
         }
 
