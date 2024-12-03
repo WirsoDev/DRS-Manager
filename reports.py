@@ -211,33 +211,33 @@ class REPORTS:
     
 
     def getTypeRequest(self):
-        ''' Get all markets 
-            return: DIC {tipo:qnt} '''
+        ''' Get all request types
+            return: List of tuples [(type, count), ...] '''
 
         data = self.current_mounth_drs
 
         tipos = []
         tipos_dic = {}
-        for key, values in data.items():
-            tipo = values['tipo_pedido_1']
-            if tipo != None:
-                tipos.append(tipo)
-            tipo_2 = values['tipo_pedido_2']
-            if tipo_2 != None:
-                tipos.append(tipo_2)
-            tipo_3 = values['tipo_pedido_3']
-            if tipo_3 != None:
-                tipos.append(tipo_3)
-            
-        for tip in tipos:
-            y = {
-                tip:0
-            }
-            tipos_dic.update(y)
-        
-        for x in tipos:
-            tipos_dic[x] += 1
 
+        for key, values in data.items():
+            # Coletar os tipos de pedidos
+            tipo = values.get('tipo_pedido_1')
+            if tipo:
+                tipos.append(tipo)
+            tipo_2 = values.get('tipo_pedido_2')
+            if tipo_2:
+                tipos.append(tipo_2)
+            tipo_3 = values.get('tipo_pedido_3')
+            if tipo_3:
+                tipos.append(tipo_3)
+        
+        for tip in tipos:
+            # Dividir tipos combinados e normalizar espaços
+            sub_tipos = [sub_tipo.strip() for sub_tipo in tip.replace("(", "").replace(")", "").split('+')]
+            for sub_tipo in sub_tipos:
+                tipos_dic[sub_tipo] = tipos_dic.get(sub_tipo, 0) + 1
+        
+        # Ordenar os resultados
         dic_sorted = sorted(tipos_dic.items(), key=lambda x: x[1], reverse=True)
         return dic_sorted
     

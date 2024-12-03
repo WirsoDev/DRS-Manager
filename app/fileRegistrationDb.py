@@ -66,8 +66,9 @@ class Fileregister:
             editfileVersion = ''.join(editfile[3][1].split())
             numberAndEd = f'{editfileName}_{editfileVersion}'
             if numberAndEd not in self.filesInDataBase():
-                NewDrsInFolder.append(file)
-                break
+                if '~$' not in file:
+                    NewDrsInFolder.append(file)
+                    break
         return NewDrsInFolder
 
 
@@ -103,11 +104,11 @@ class Fileregister:
                     fileSheet.cell_value(27, 0)
                     ]
                 drsRevs = [
-                    fileSheet.cell_value(36, 3),
-                    fileSheet.cell_value(37, 3),
-                    fileSheet.cell_value(38, 3),
-                    fileSheet.cell_value(39, 3),
-                    fileSheet.cell_value(40, 3),
+                    str(fileSheet.cell_value(36, 3)),
+                    str(fileSheet.cell_value(37, 3)),
+                    str(fileSheet.cell_value(38, 3)),
+                    str(fileSheet.cell_value(39, 3)),
+                    str(fileSheet.cell_value(40, 3)),
                 ]
                 drsDeadline = fileSheet.cell_value(11, 7)
                 drsForecast = fileSheet.cell_value(13, 7)
