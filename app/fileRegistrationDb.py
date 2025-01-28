@@ -3,6 +3,8 @@ import xlrd
 import openpyxl
 from dotenv import load_dotenv
 from datetime import date, datetime
+from consts import requests_types
+from app.jiraConn import JiraConn
 
 load_dotenv()
 
@@ -11,8 +13,8 @@ load_dotenv()
 class Fileregister:
     '''Register DRS in database'''
     def __init__(self):
-        filesPath = os.environ.get('DIREDITABLEFILES')
-        listfiles = os.listdir(filesPath)
+        self.filesPath = os.environ.get('DIREDITABLEFILES')
+        listfiles = os.listdir(self.filesPath)
         self.files = listfiles
 
 
@@ -59,8 +61,14 @@ class Fileregister:
     def newDrsFiles(self):
         '''check for new files in folder - Returns a list of new files to add in db'''
         NewDrsInFolder = []
-        reversed_files = self.files[::-1]
-        for file in reversed_files: # number over 1000 - dont use reversed_files
+        # Get the full file paths and sort by modification time (descending)
+        sorted_files = sorted(
+            self.files,
+            key=lambda f: os.path.getmtime(os.path.join(self.filesPath, f)),
+            reverse=True
+        )
+        counter = 0
+        for file in sorted_files: # number over 1000 - dont use reversed_files
             editfile = file.split('_')
             editfileName = ''.join(editfile[1].split())
             editfileVersion = ''.join(editfile[3][1].split())
@@ -69,6 +77,9 @@ class Fileregister:
                 if '~$' not in file:
                     NewDrsInFolder.append(file)
                     break
+            counter += 1
+            if counter >=60:
+                break
         return NewDrsInFolder
 
 
@@ -171,9 +182,65 @@ class Fileregister:
                 dbFile.close()
 
             now = datetime.now()
+            drsTiposPedidos = ', '.join(drsTiposPedido)
+            drsTiposPedidos = self.joinRequests(drsTiposPedidos)
+                    
+
+            data = {
+                'drsNumber': drsNumber,
+                'drsVersion':drsVersion,
+                'client':drsCliente,
+                'tiposPedido': drsTiposPedidos,
+                'modelName': drsModelName,
+                'modelCode': drsCodModel,
+                'tipologia': drsTipologia,
+                'deadline': drsDeadline,
+            }
+
+            # add task to jira
+            jiracon = JiraConn()
+            resp = jiracon.run_jira(data=data)
+            if resp:
+                data['issue_id'] = resp
+
+            # send post notification to discord bot at /newtask port 8080 (localhost) with drs number / tipos pedido
+
+            import requests
+
+            #marge all tipos de pedido
+            
+
+
+            url = 'http://localhost:8080/newtask'
+            
+            response = requests.post(url, json=data)
+            print(response.status_code)
+
+            
+
 
             print(f'New files add to DB! at: {now}')
         else:
             return 'No new files found to add in DB!'
+        
+    
+
+    #helpers
+    def joinRequests(self, requests: str):
+        requests = requests.split(', ')
+        request_bucket = []
+
+        for i in requests:
+            if not i.strip():  # Skip empty strings
+                continue
+            if '(' in i:
+                new_i = i.replace('(', '').replace(')', '').replace('+', ',').strip()
+                request_bucket.extend([y.strip() for y in new_i.split(',')])
+            else:
+                request_bucket.append(i.strip())
+
+        # Remove empty values and join with commas
+        result = ','.join([req for req in request_bucket if req])
+        return result.strip(',')  # Remove trailing commas
 
 

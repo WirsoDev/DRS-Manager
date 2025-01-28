@@ -5,13 +5,15 @@ from datetime import datetime, date
 import time
 import os
 
+
+
 class FILTER_DATA:
     #filter data from reports
 
     def __init__(self, global_= False, dep=None, request=None, _open=False, filter_year=False):
         self.isGobal = global_
         self.filter_year = filter_year
-        self.reports = REPORTS(self.isGobal, filter_year=self.filter_year)
+        self.reports = REPORTS(global_=self.isGobal, filter_year=self.filter_year)
         self.data = self.reports.getAllDrsData()
         self.dep = dep
         self.request = request
@@ -20,7 +22,7 @@ class FILTER_DATA:
 
     def requests_filter(self):
         requests = {
-            'MRK':[
+            'MRK': [
                 'APRESENTAÇÕES',
                 'DESENV. PROD.',
                 'IMAGEM DE PRODUTO',
@@ -34,209 +36,104 @@ class FILTER_DATA:
                 'SHOOTING',
                 'DESCRITIVO DE MARKETING'
             ],
-            'CUSTEIO':[
+            'CUSTEIO': [
                 'CUSTEIO',
                 'REVISÃO DE PREÇO'
             ],
-            'DID':[
+            'DID': [
                 'CERTIFICAÇÃO',
                 'PRODUÇÃO DE AMOSTRA',
                 'PROTOTIPO',
-                'PROTOTIPO + CERTIFICAÇÃO'
+                'PROTOTIPO CUSTEIO',
+                'PROTOTIPO + CERTIFICAÇÃO',
                 'CERTIFICAÇAO',
-                'REENGENHARIA'
+                'REENGENHARIA',
+                'CUSTEIO'
             ]
         }
 
         if self.request:
             return [self.request]
-        
+
         if self.dep:
-            return requests[self.dep]
-        
+            return requests.get(self.dep, [])  # Evita erro caso a chave não exista
+
+        # Combina todas as categorias em uma única lista
         return [value for sublist in requests.values() for value in sublist]
 
 
 
-    def get_filtered_data(self):
 
+    def get_filtered_data(self):
         data = self.data
         accepted_requests = self.requests_filter()
         DRS_FILTER = []
 
+        # Normalize os accepted_requests para comparação
+        accepted_requests = [req.strip().upper() for req in accepted_requests]
 
-        for drs in data:
-            if self.isopen == True:
-                if data[drs]['finalizado_por'] == None:
-                    drs_n = data[drs]['drs_n']
-                    data_registo = data[drs]['data_registo']
-                    if type(data_registo) == str:
-                        new_date = datetime.strptime(data_registo, '%d/%m/%Y')
-                    else:
-                        new_date = data_registo
-                    cliente = data[drs]['cliente']
-                    tipo_pedido_1 = data[drs]['tipo_pedido_1']
-                    tipo_pedido_2 = data[drs]['tipo_pedido_2']
-                    tipo_pedido_3 = data[drs]['tipo_pedido_3']
+        for drs_id, drs_data in data.items():
+            # Extrair informações básicas
+            drs_n = drs_data.get('drs_n')
+            cliente = drs_data.get('cliente')
+            codigo_modelo = drs_data.get('codigo_modelo')
+            mercado = drs_data.get('mercado')
+            Uni_prod = drs_data.get('Uni_prod')
+            Resp_pedido = drs_data.get('Resp_pedido')
+            dep_requerente = drs_data.get('dep_requerente')
+            finalizado_por = drs_data.get('finalizado_por')
+            recusado_por = drs_data.get('recusado_por')
+            anulado_por = drs_data.get('anulado_por')
+            aprovado_por = drs_data.get('aprovado_por')
 
-                    if tipo_pedido_1 in accepted_requests:
-                        new_data = {
-                            'drs':drs_n,
-                            'projeto':tipo_pedido_1,
-                            'cliente':cliente,
-                            'data':new_date
-                        }
-                        DRS_FILTER.append(new_data)
-                    
-                    if tipo_pedido_2 in accepted_requests:
-                        new_data = {
-                            'drs':drs_n,
-                            'projeto':tipo_pedido_2,
-                            'cliente':cliente,
-                            'data':new_date
-                        }
-                        DRS_FILTER.append(new_data)
-                    
-                    if tipo_pedido_3 in accepted_requests:
-                        new_data = {
-                            'drs':drs_n,
-                            'projeto':tipo_pedido_3,
-                            'cliente':cliente,
-                            'data':new_date
-                        }
-                        DRS_FILTER.append(new_data)  
+            # Tratamento de datas
+            if self.isopen is True:
+                data_registo = drs_data.get('data_registo')
+                new_date = parse_date(data_registo)
+                new_date_finalizado = None
+            elif self.isopen is False:
+                data_registo = drs_data.get('finalizado_em')
+                new_date = parse_date(data_registo)
+                new_date_finalizado = new_date
+            else:  # Caso seja "All"
+                data_registo = drs_data.get('data_registo')
+                data_finalizado = drs_data.get('finalizado_em')
+                new_date = parse_date(data_registo)
+                new_date_finalizado = parse_date(data_finalizado)
 
-            if self.isopen == False:
-                if data[drs]['finalizado_por'] != None:
-                    drs_n = data[drs]['drs_n']
-                    data_registo = data[drs]['finalizado_em']
-                    if type(data_registo) == str:
-                        new_date = datetime.strptime(data_registo, '%d/%m/%Y')
-                    else:
-                        new_date = data_registo
-                    cliente = data[drs]['cliente']
-                    tipo_pedido_1 = data[drs]['tipo_pedido_1']
-                    tipo_pedido_2 = data[drs]['tipo_pedido_2']
-                    tipo_pedido_3 = data[drs]['tipo_pedido_3']
+            # Tipos de pedidos com seus índices
+            tipos_pedidos = [
+                (str(drs_data.get('tipo_pedido_1', '')).strip().upper(), 1),
+                (str(drs_data.get('tipo_pedido_2', '')).strip().upper(), 2),
+                (str(drs_data.get('tipo_pedido_3', '')).strip().upper(), 3),
+            ]
 
-                    if tipo_pedido_1 in accepted_requests:
-                        new_data = {
-                            'drs':drs_n,
-                            'projeto':tipo_pedido_1,
-                            'cliente':cliente,
-                            'data':new_date
-                        }
-                        DRS_FILTER.append(new_data)
-                    
-                    if tipo_pedido_2 in accepted_requests:
-                        new_data = {
-                            'drs':drs_n,
-                            'projeto':tipo_pedido_2,
-                            'cliente':cliente,
-                            'data':new_date
-                        }
-                        DRS_FILTER.append(new_data)
-                    
-                    if tipo_pedido_3 in accepted_requests:
-                        new_data = {
-                            'drs':drs_n,
-                            'projeto':tipo_pedido_3,
-                            'cliente':cliente,
-                            'data':new_date
-                        }
-                        DRS_FILTER.append(new_data)
-            
-
-            if self.isopen == 'All':
-                if True:
-                    drs_n = data[drs]['drs_n']
-
-                    data_registo = data[drs]['data_registo']
-                    data_finalizado = data[drs]['finalizado_em']
-
-                    if type(data_registo) == str:
-                        new_date = datetime.strptime(data_registo, '%d/%m/%Y')
-                    else:
-                        new_date = data_registo
-
-                    if type(data_finalizado) == str:
-                        new_date_finalizado = datetime.strptime(data_finalizado, '%d/%m/%Y')
-                    else:
-                        new_date_finalizado = data_finalizado
-                    
-                    codigo_modelo = data[drs]['codigo_modelo']
-                    mercado = data[drs]['mercado']
-                    Uni_prod = data[drs]['Uni_prod']
-                    Resp_pedido = data[drs]['Resp_pedido']
-                    dep_requerente = data[drs]['dep_requerente']
-                    finalizado_por = data[drs]['finalizado_por']
-                    recusado_por = data[drs]['recusado_por']
-                    anulado_por = data[drs]['anulado_por']
-                    aprovado_por = data[drs]['aprovado_por']
-                    cliente = data[drs]['cliente']
-
-                    tipo_pedido_1 = data[drs]['tipo_pedido_1']
-                    tipo_pedido_2 = data[drs]['tipo_pedido_2']
-                    tipo_pedido_3 = data[drs]['tipo_pedido_3']
-
-                    if tipo_pedido_1 in accepted_requests:
-                        new_data = {
-                            'drs':drs_n,
-                            'codigo_modelo':codigo_modelo,
-                            'projeto':tipo_pedido_1,
-                            'mercado':mercado,
-                            'cliente':cliente,
-                            'uni_prod':Uni_prod,
-                            'resp_pedido':Resp_pedido,
-                            'dep_requerente':dep_requerente,
-                            'data_registo':new_date,
-                            'finalizado_por':finalizado_por,
-                            'finalizado_em':new_date_finalizado,
-                            'aprovado_por':aprovado_por,
-                            'recusado_por':recusado_por,
-                            'anulado_por':anulado_por
-                        }
-                        DRS_FILTER.append(new_data)
-                    
-                    if tipo_pedido_2 in accepted_requests:
-                        new_data = {
-                            'drs':drs_n,
-                            'codigo_modelo':codigo_modelo,
-                            'projeto':tipo_pedido_2,
-                            'mercado':mercado,
-                            'cliente':cliente,
-                            'uni_prod':Uni_prod,
-                            'resp_pedido':Resp_pedido,
-                            'dep_requerente':dep_requerente,
-                            'data_registo':new_date,
-                            'finalizado_por':finalizado_por,
-                            'finalizado_em':new_date_finalizado,
-                            'aprovado_por':aprovado_por,
-                            'recusado_por':recusado_por,
-                            'anulado_por':anulado_por
-                        }
-                        DRS_FILTER.append(new_data)
-                    
-                    if tipo_pedido_3 in accepted_requests:
-                        new_data = {
-                            'drs':drs_n,
-                            'codigo_modelo':codigo_modelo,
-                            'projeto':tipo_pedido_3,
-                            'mercado':mercado,
-                            'cliente':cliente,
-                            'uni_prod':Uni_prod,
-                            'resp_pedido':Resp_pedido,
-                            'dep_requerente':dep_requerente,
-                            'data_registo':new_date,
-                            'finalizado_por':finalizado_por,
-                            'finalizado_em':new_date_finalizado,
-                            'aprovado_por':aprovado_por,
-                            'recusado_por':recusado_por,
-                            'anulado_por':anulado_por
-                        }
-                        DRS_FILTER.append(new_data)  
+            # Para cada tipo de pedido válido, cria uma entrada separada
+            for tipo_pedido, pedido_num in tipos_pedidos:
+                if tipo_pedido and tipo_pedido in accepted_requests:
+                    print(f"DRS {drs_n} - Incluindo tipo de pedido {pedido_num}: {tipo_pedido}")
+                    new_data = {
+                        'drs': drs_n,
+                        'codigo_modelo': codigo_modelo,
+                        'projeto': tipo_pedido,  # Usa o tipo de pedido específico
+                        'mercado': mercado,
+                        'cliente': cliente,
+                        'uni_prod': Uni_prod,
+                        'resp_pedido': Resp_pedido,
+                        'dep_requerente': dep_requerente,
+                        'data_registo': new_date,
+                        'finalizado_por': finalizado_por,
+                        'finalizado_em': new_date_finalizado,
+                        'aprovado_por': aprovado_por,
+                        'recusado_por': recusado_por,
+                        'anulado_por': anulado_por,
+                        'pedido_num': pedido_num  # Opcional: adiciona o número do tipo de pedido
+                    }
+                    DRS_FILTER.append(new_data)
 
         return DRS_FILTER
+
+
 
 
     def save_excel(self, filename):
@@ -272,6 +169,20 @@ class FILTER_DATA:
         return 'File saved!'
 
 
+def parse_date(date_string):
+    if date_string is None or date_string == "None":  # Handle both None and string 'None'
+        return None
+    if isinstance(date_string, str):
+        for fmt in ('%d/%m/%Y', '%Y-%m-%d %H:%M:%S'):
+            try:
+                return datetime.strptime(date_string, fmt)
+            except ValueError:
+                continue
+        raise ValueError(f"Date format not recognized: {date_string}")
+    if isinstance(date_string, datetime):  # Already a datetime object
+        return date_string
+    raise ValueError(f"Unsupported date type: {type(date_string)}")
+
 
 
 def main():
@@ -295,10 +206,7 @@ $$$$$$$  |$$ |  $$ |\$$$$$$  |      $$ |      $$$$$$\ $$$$$$$$\ $$ |   $$$$$$$$\
         _global_ = True
 
         #get years
-        years = input('Years to search (separate by comma): ')
-        years_list = []
-        for y in years.split(','):
-            years_list.append(y)
+        years = input('Year to search: ')
 
 
     elif isGlobal == 'N':
@@ -331,7 +239,7 @@ $$$$$$$  |$$ |  $$ |\$$$$$$  |      $$ |      $$$$$$\ $$$$$$$$\ $$ |   $$$$$$$$\
     print('\n')
 
 
-    x = FILTER_DATA(global_=_global_, request=request_filter, dep=dep_filter, _open=drs_open, filter_year=years_list)
+    x = FILTER_DATA(global_=_global_, request=request_filter, dep=dep_filter, _open=drs_open, filter_year=years)
     data = x.get_filtered_data()
     print(f'{len(data)} DRS found!')
     print('\n')

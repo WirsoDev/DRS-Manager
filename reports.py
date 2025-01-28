@@ -9,7 +9,7 @@ import re
 load_dotenv()
 
 class REPORTS:
-    def __init__(self, global_=False):
+    def __init__(self, filter_year=None, global_=False):
         #Get all data from DRS DB
 
         date = datetime.datetime.now()
@@ -18,7 +18,10 @@ class REPORTS:
         file = load_workbook(filename=db_file)
         self.sheet = file['Folha1']
         self.global_ = global_
-        self.filter_year = date.year
+        if filter_year != None:
+            self.filter_year = filter_year
+        else:
+            self.filter_year = date.year
 
         max = self.sheet.max_row
 
